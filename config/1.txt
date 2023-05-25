@@ -1,0 +1,187 @@
+#1. 
+    boiler plate: 회원가입과 로그인 기능과 같이 자주 쓰이는 기능을
+    프로젝트 시작 전 미리 만들어 다시 재사용할 수 있도록 해주는 것
+
+#2.
+    NODE JS: 자바스크립트를 브라우저 내가 아닌, 사이드에서 쓸 수 있도록
+    EXPRESS JS: 노드 js 를 더 쉽게 이용할 수 있도록 해 주는 framework
+
+    package json: 설치한 패키지의 버전을 관리하는 파일
+        -> 노드 프로젝트를 시작하기 전 폴더 내부에 package.json 파일을 반드시 생성 후 시작
+
+    라우트(route): 
+    라우팅: URI 및 특정한 HTTP 요청 메소드 (get, post) 인 특정 엔드포인트에 대한 클라이언트 요청에 애플리케이션이 응답하는 방법을 결정하는 것
+        URI: 특정 리소스를 식별하는 통합 자원 식별자(Uniform Resource Identifier)
+             웹 기술에서 사용하는 논리적 또는 물리적 리소스를 식별하는 고유한 문자열 시퀀스
+             URL 보단 상위 개념
+        HTTP 요청 메소드: 클라이언트가 웹 서버에게 사용자 요청의 목적/종류를 알리는 수단 
+            (1) get: URI 형식으로 웹 서버 측 데이터 요청
+                     파라미터를 넘겨 해당하는 본문 형식을 받는다.
+            (2) post: 내용(파일도 가능) 전송
+                      클라이언트에서 서버로 전달하고자 하는 정보를 서버로 보냄
+
+    <터미널 내>
+        npm: node package manager (자바스크립트 프로그래머들이 미리 작성해둔 코드들이 공개되어 있는 서버)
+
+        1. npm install 패키지명: 패키지 설치 <-> npm uninstall 패키지명
+        2. 1번 뒤에 '--save' 붙일 경우 dependencies 에 패키지 이름을 추가할 수 있다.
+        3. npm start 스크립트명(package.json 파일 내 존재): 앱 실행
+
+    <작성 코드>
+        const express = require('express')
+            -> 설치한 express 모듈을 가져옴 
+
+        const app = express()
+
+        const port = 3000
+            -> 컴퓨터가 외부와 통신할 수 있도록 하는 구멍
+
+        app.get('/',(req,res) => res.send('Hello World!'))
+            -> 홈으로 접속('/')했을 때 함수((req,res))가 실행되도록
+
+        app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+            -> listen(서버를 오픈할 포트번호, 콜백함수(서버 오픈시 실행할 코드))
+            -> listen() 이라는 함수를 동작시킨 다음 콜백함수 실행
+                콜백함수: 함수 안에 들어가는 함수
+                    -> 사용하는 이유: 자바스크립트 내에서 코드를 순차적으로 실행하기 위해
+
+#3. 
+    몽고db 클러스터 생성 -> 몽고db user 생성 -> choose a connection method(your application)
+    -> connection string
+
+    mongoose: 몽고db를 편하게 쓸 수 있게 해주는 툴
+
+    <작성 코드>
+        const mongoose=require('mongoose')
+        mongoose.connect('mongodb+srv://nayeon0729:1212@boilerplate.yyinpuz.mongodb.net/?retryWrites=true&w=majority',{
+            useNewUrlParser: true, useUnifiedTopology: true -> 에러 대비
+        }).then(()=>console.log('MongoDB Connected...'))
+          .catch(err=>console.log(err))
+
+#4.
+    유저의 아이디와 비밀번호를 받을 시 이러한 데이터들을 보관하기 위해 user model 과 user schema 필요
+
+    userSchema: 유저에 대한 상세 정보를 담고 있음
+    userModel: schema 를 감싸주는 역할
+
+    <작성 코드> ./models/User.js
+        const userSchema = mongoose.Schema({
+            name: {
+                type: String,
+                maxlength: 50
+            },
+            email: {
+                type: String,
+                trim: true,
+                unique:1    //똑같은 이메일을 쓰지 못하도록
+            },
+            password: {
+                type: String,
+                maxlength: 50
+            },
+            role: { //유저는 관리자가 될 수도, 일반인이 될 수도
+                type: Number,
+                default: 0  //0: 일반 유저, 1: 관리자
+            },
+            image: String,
+            token: {    //유효성 관리
+                type: String
+            },
+            tokenExp: { //유효 기간
+                type: Number
+            }
+        })
+
+        const User = mongoose.model('User', userSchema)
+            -> mongoose.model(model 이름, schema)
+
+        module.exports={User};
+            -> 위 model 을 다른 파일에서도 쓸 수 있도록 export
+
+#5.
+    git: 코드 버전 관리 시스템 (툴)
+    github: git을 사용하는 클라우드 서비스
+
+    <터미널 내>
+        [Working Directory] -{git add}-> Staging Area (repository에 넣기 전 대기시켜 주는 공간) 
+        -{git commit}-> [local git repository] -{git push}-> {remote git repository(github)}
+
+        1. git init: local git repository 생성
+        2. git rm --cached 지울파일명 -r
+            먼저 .gitignore 파일을 만들고 업로드하지 않을 파일명 넣어준 후 2번 명령어 터미널에 입력
+
+#6.
+    local repository 와 github 서버가 안전하게 통신하기 위해 SSH 사용
+
+    ssh key 생성 (private(id_rsa), public(id_rsa.pub)) -> ssh agent 를 background 에서 on -> 
+    private key를 agent 에 연결 -> public key 깃헙에 연결
+
+#7.
+    client(ex.chrome) 와 server 가 통신하는 법
+    우리가 짜는 코드는 server 를 만드는 것 
+        -> body-parser 를 통해 client 로부터 받음
+            -> 터미널 설치 요함
+
+    client 가 존재하지 않을 경우 postman 으로 데이터 전송 가능
+
+    <작성 코드>
+        const bodyParser = require('body-parser');
+            -> body-parser 란 요청의 본문에 있는 데이터를 해석해서 req.body 객체로 만들어주는 미들웨어
+                -> 미들웨어: 미들웨어는 양 쪽을 연결하여 데이터를 주고 받을 수 있도록 중간에서 매개 역할을 하는 소프트웨어 
+                           네트워크를 통해서 연결된 여러 개의 컴퓨터에 있는 많은 프로세스들에게 어떤 서비스를 사용할 수 있도록 연결해 주는 소프트웨어
+                           웹 브라우저에서 데이터베이스로부터 데이터를 저장하거나 읽어올 수 있게 중간에 미들웨어가 존재
+
+        const {User} = require("./models/User");
+
+        app.use(bodyParser.urlencoded({extended: true}));
+            -> application/x-www-form-urlencoded 형식으로 인코딩된 파일(데이터가 key:value 와 같은 형태로 되어 있는 파일)을 가져올 수 있도록
+            -> json 형식(name:'', book:'')일 경우 req.body 에 들어감
+            -> url-encoded 형식(주소 형식)으로 name = & book = 을 보낸다면 req.body 에 데이터가 json 형식으로 변환되어 들어감
+            -> 즉, extended: 값은 application/x-www-form-urlencoded 방식이면 false, 다른 인코딩 방식이라면 true
+                -> true: qs library 를 사용하여 url-encoded data 파싱
+                    -> 중첩 객체 (객체 안의 객체) 생성 가능
+                -> false: querystring library 사용
+                    -> 중첩 객체 생성 지원 x
+
+        app.use(bodyParser.json());
+            -> application/json 방식의 데이터를 받음
+
+    <회원가입 기능 코드>
+        app.post('/register', (req, res)) => {
+            -> postman 앱에 post 형식 선택, body 의 raw 선택 후 user info json 형식으로 입력 후 send
+
+            const user = new User(req.body)
+                -> req.body 안에 객체 형식의 데이터가 들어 있음
+                    -> body-parser 로 인해 req.body 내 데이터 존재 가능
+
+            try{
+                user.save()
+                .then(()=>{
+                    return res.status(200).json({success:true});
+                })
+                .catch((err)=>{
+                    return res.json({success:false,err});
+                })
+            } 
+            catch (err){
+                console.log(err);
+            }
+        }
+
+#8.
+    NODE MON: 서버를 다운시키고 재시작시키지 않아도 새로고침 시 변경 사항 즉각적으로 반영되도록
+        -> package.json 파일에 추가시켜줘야 함
+            -> "backend" : "nodemon index.js"
+                ->nodemon 을 이용해서 index.js 파일을 실행시키겠다
+                    -> npm run backend
+
+#9.
+    #3 에서 mongoose.connect('mongodb+srv://nayeon0729:1212@boilerplate.yyinpuz.mongodb.net/?retryWrites=true&w=majority')
+    깃허브에 그대로 올릴 시 보안 정보 유출 가능 -> 방지해야
+
+    config 파일 생성 후 dev.js 파일에 mongoURI 변수 생성 -> gitignore
+
+    <작성 코드>
+        const config = require('./config/key');
+        mongoose.connect(config.mongoURI)
+    
